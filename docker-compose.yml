@@ -1,0 +1,155 @@
+version: "3"
+
+services:
+  portainer:
+    image: portainer/portainer
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "portainerData:/data"
+
+  ldap:
+    image: mcreations/fusiondirectory-ldap
+    restart: always
+    volumes: 
+      - "openldapData:/var/openldap-data"
+    environment: 
+      - LDAP_DOMAIN=${DOMAIN}.com
+      - LDAP_ROOTPW=secret
+
+  fusiondirectory:
+    image: mcreations/fusiondirectory
+    restart: always
+    ports:
+      - "12080:80" 
+    depends_on:
+      - ldap
+    environment: 
+      - LDAP_HOST=ldap
+      - LDAP_SERVER_URL=ldap://ldap:389
+      - LDAP_ROOTDN=cn=admin,dc=${DOMAIN},dc=com
+      - LDAP_DOMAIN=example.com
+      - LDAP_ROOTPW=secret
+
+  nexus:
+    image: sonatype/nexus3
+    restart: always
+    volumes:
+      - nexusData:/nexus-data
+    ports:
+      - "8081:8081"
+
+  redis:
+      restart: always
+      image: sameersbn/redis:latest
+      command:
+      - --loglevel warning
+      volumes:
+      - "gitlabRedisData:/var/lib/redis"
+
+  postgresql:
+    restart: always
+    image: sameersbn/postgresql:9.6-2
+    volumes:
+    - "gitlabPostgresqlData:/var/lib/postgresql"
+    - "gitlabPostgresqlRunData:/run/postgresql"
+    environment:
+    - DB_USER=gitlab
+    - DB_PASS=password
+    - DB_NAME=gitlabhq_production
+    - DB_EXTENSION=pg_trgm
+
+  gitlab:
+    restart: always
+    image: sameersbn/gitlab:9.1.3
+    depends_on:
+    - redis
+    - postgresql
+    ports:
+    - "10080:80"
+    - "10022:22"
+    volumes:
+    - "gitlabData:/home/git/data"
+    - "gitlabLogs:/var/log/gitlab"
+    - "gitlabConfig:/etc/gitlab"
+    environment:
+    - DEBUG=false
+
+    - DB_ADAPTER=postgresql
+    - DB_HOST=postgresql
+    - DB_PORT=5432
+    - DB_USER=gitlab
+    - DB_PASS=password
+    - DB_NAME=gitlabhq_production
+
+    - REDIS_HOST=redis
+    - REDIS_PORT=6379
+
+    - TZ=Europe/Berlin
+    - GITLAB_TIMEZONE=Berlin
+
+    - GITLAB_HTTPS=false
+    - SSL_SELF_SIGNED=false
+
+    - GITLAB_HOST=localhost
+    - GITLAB_PORT=10080
+    - GITLAB_SSH_PORT=10022
+    - GITLAB_RELATIVE_URL_ROOT=
+    - GITLAB_SECRETS_DB_KEY_BASE=MWBMPCFrcPQWvsQP33xXhGgqyxvGd7De
+    - GITLAB_SECRETS_SECRET_KEY_BASE=MWBMPCFrcPQWvsQP33xXhGgqyxvGd7De
+    - GITLAB_SECRETS_OTP_KEY_BASE=MWBMPCFrcPQWvsQP33xXhGgqyxvGd7De
+
+    - GITLAB_ROOT_PASSWORD=eizzk4lt
+    - GITLAB_ROOT_EMAIL=
+
+    - GITLAB_NOTIFY_ON_BROKEN_BUILDS=false
+    - GITLAB_NOTIFY_PUSHER=false
+
+    - GITLAB_EMAIL=notifications@${DOMAIN}
+    - GITLAB_EMAIL_REPLY_TO=noreply@${DOMAIN}
+    - GITLAB_INCOMING_EMAIL_ADDRESS=reply@${DOMAIN}
+
+    - GITLAB_BACKUP_SCHEDULE=daily
+    - GITLAB_BACKUP_TIME=01:00
+
+    - SMTP_ENABLED=true
+    - SMTP_DOMAIN=sandbox8a5ea097dcfb4d4ca9539ecc683d24b4.mailgun.org
+    - SMTP_STARTLS=true
+    - SMTP_HOST=smtp.mailgun.org
+    - SMTP_USER=postmaster@sandbox8a5ea097dcfb4d4ca9539ecc683d24b4.mailgun.org
+    - SMTP_PASS=10d580124d4134de3f4f27832b440c65
+    - SMTP_AUTHENTICATION=plain
+
+    - IMAP_ENABLED=false
+    - IMAP_HOST=imap.gmail.com
+    - IMAP_PORT=993
+    - IMAP_USER=mailer@example.com
+    - IMAP_PASS=password
+    - IMAP_SSL=true
+    - IMAP_STARTTLS=false
+
+    - OAUTH_ENABLED=false
+
+    - LDAP_ENABLED=true
+    - LDAP_HOST=ldap
+    - LDAP_UID=uid
+    - LDAP_BIND_DN=cn=admin,dc=example,dc=com
+    - LDAP_PASS=secret
+    - LDAP_ACTIVE_DIRECTORY=false
+    - LDAP_BASE=ou=people,dc=example,dc=com
+
+volumes:
+  portainerData: {}
+  gitlabData: {}
+  gitlabConfig: {}
+  gitlabLogs: {}
+  gitlabRedisData: {}
+  gitlabPostgresqlData: {}
+  gitlabPostgresqlRunData: {}
+  nexusData: {}
+  openldapData: {}
+  maildata: {}
+  mailstate: {}
+  mailconfig: {}
