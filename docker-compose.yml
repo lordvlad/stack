@@ -150,6 +150,3 @@ volumes:
   gitlabPostgresqlRunData: {}
   nexusData: {}
   openldapData: {}
-  maildata: {}
-  mailstate: {}
-  mailconfig: {}
