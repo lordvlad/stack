@@ -1,6 +1,14 @@
 version: "3"
 
 services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+      - "nginxData:/etc/nginx/vhost.d"
+
   portainer:
     image: portainer/portainer
     restart: always
@@ -9,6 +17,8 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "portainerData:/data"
+    environment: 
+      - VIRTUAL_HOST=portainer.192.168.0.105.xip.io
 
   ldap:
     image: mcreations/fusiondirectory-ldap
@@ -75,6 +85,7 @@ services:
     - "gitlabLogs:/var/log/gitlab"
     - "gitlabConfig:/etc/gitlab"
     environment:
+    - VIRTUAL_HOST=~^gitlab\..*\.xip\.io
     - DEBUG=false
 
     - DB_ADAPTER=postgresql
@@ -93,7 +104,7 @@ services:
     - GITLAB_HTTPS=false
     - SSL_SELF_SIGNED=false
 
-    - GITLAB_HOST=gitlab
+    - GITLAB_HOST=gitlab.192.168.0.205.xip.io
     - GITLAB_PORT=80
     - GITLAB_SSH_PORT=22
     - GITLAB_RELATIVE_URL_ROOT=
@@ -150,3 +161,4 @@ volumes:
   gitlabPostgresqlRunData: {}
   nexusData: {}
   openldapData: {}
+  nginxData: {}
