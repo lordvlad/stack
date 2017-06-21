@@ -87,7 +87,6 @@ volumes:
   verdaccioData: {}
   portainerData: {}
   nginxVhosts: {}
-  nginxData: {}
   nginxConf: {}
   nginxHtml: {}
   certs: {}
