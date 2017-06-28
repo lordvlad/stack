@@ -64,6 +64,25 @@ services:
         max_attempts: 3
         window: 120s
 
+  docker_registry:
+    image: registry:2
+    depends_on:
+      - nginx
+    ports:
+      - "5000:5000"
+    volumes:
+      - "dockerRegistryData:/var/lib/registry"
+    environment:
+      - VIRTUAL_HOST=registry.lordvlad.tk
+      - LETSENCRYPT_HOST=registry.lordvlad.tk
+      - LETSENCRYPT_EMAIL=waldemar.reusch@googlemail.com
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
   verdaccio:
     image: lordvlad/verdaccio
     depends_on:
@@ -84,6 +103,7 @@ services:
         window: 120s
 
 volumes:
+  dockerRegistryData: {}
   verdaccioData: {}
   portainerData: {}
   nginxVhosts: {}
