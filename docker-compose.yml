@@ -17,7 +17,7 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
-      restart_policy: 
+      restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
@@ -36,7 +36,7 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
-      restart_policy: 
+      restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
@@ -51,60 +51,20 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "portainerData:/data"
-    environment: 
+    environment:
       - VIRTUAL_HOST=portainer.lordvlad.tk
       - LETSENCRYPT_HOST=portainer.lordvlad.tk
       - LETSENCRYPT_EMAIL=waldemar.reusch@googlemail.com
     deploy:
       placement:
         constraints: [node.role == manager]
-      restart_policy: 
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-
-  docker_registry:
-    image: registry:2
-    depends_on:
-      - nginx
-    ports:
-      - "5000:5000"
-    volumes:
-      - "dockerRegistryData:/var/lib/registry"
-    environment:
-      - VIRTUAL_HOST=registry.lordvlad.tk
-      - LETSENCRYPT_HOST=registry.lordvlad.tk
-      - LETSENCRYPT_EMAIL=waldemar.reusch@googlemail.com
-    deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
         window: 120s
 
-  verdaccio:
-    image: lordvlad/verdaccio
-    depends_on:
-      - nginx
-    ports:
-      - "4873:4873"
-    volumes:
-      - "verdaccioData:/verdaccio"
-    environment:
-      - VIRTUAL_HOST=verdaccio.lordvlad.tk
-      - LETSENCRYPT_HOST=verdaccio.lordvlad.tk
-      - LETSENCRYPT_EMAIL=waldemar.reusch@googlemail.com
-    deploy:
-      restart_policy: 
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-
 volumes:
-  dockerRegistryData: {}
-  verdaccioData: {}
   portainerData: {}
   nginxVhosts: {}
   nginxConf: {}
